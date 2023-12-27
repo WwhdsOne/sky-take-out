@@ -17,7 +17,7 @@
     <delete id="deleteByIds">
         delete from dish where id in
         <foreach collection="ids" open="(" close=")" separator="," item="id">
-                #{id}
+            #{id}
         </foreach>
     </delete>
     <!--菜品分页查询-->
@@ -32,11 +32,12 @@
         order by d.create_time desc
     </select>
 
+
     <!--修改菜品基本信息-->
     <update id="update">
         update dish
         <set>
-            <if test="name != null">name = #{name},</if>
+            <if test="name != null and name != ''">name = #{name},</if>
             <if test="categoryId != null">category_id = #{categoryId},</if>
             <if test="price != null">price = #{price},</if>
             <if test="image != null">image = #{image},</if>
@@ -47,6 +48,11 @@
         </set>
         where id = #{id}
     </update>
+
+    <!--根据分类ID获取菜品-->
+    <select id="getByCategoryId" resultType="com.sky.vo.DishVO">
+        select * from dish where category_id = #{categoryId}
+    </select>
 
 
 </mapper>

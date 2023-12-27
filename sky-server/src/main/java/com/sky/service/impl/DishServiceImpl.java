@@ -2,7 +2,6 @@ package com.sky.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.google.common.io.BaseEncoding;
 import com.sky.constant.MessageConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.dto.DishDTO;
@@ -12,7 +11,7 @@ import com.sky.entity.DishFlavor;
 import com.sky.exception.DeletionNotAllowedException;
 import com.sky.mapper.DishFlavorMapper;
 import com.sky.mapper.DishMapper;
-import com.sky.mapper.SetmealDishMapper;
+import com.sky.mapper.SetMealDishMapper;
 import com.sky.result.PageResult;
 import com.sky.service.DishService;
 import com.sky.vo.DishVO;
@@ -36,7 +35,7 @@ public class DishServiceImpl implements DishService {
     private DishFlavorMapper dishFlavorMapper;
 
     @Autowired
-    private SetmealDishMapper setmealDishMapper;
+    private SetMealDishMapper setmealDishMapper;
     /**
      * 新增菜品和对应口味
      * @param dishDTO
@@ -152,6 +151,7 @@ public class DishServiceImpl implements DishService {
      * @return
      */
     @Override
+    @Transactional
     public void updateWithFlavor(DishDTO dishDTO) {
         Dish dish = new Dish();
         BeanUtils.copyProperties(dishDTO,dish);
@@ -174,5 +174,30 @@ public class DishServiceImpl implements DishService {
 
 
 
+    }
+    /**
+     * 根据分类ID获取菜品
+     * @param categoryId
+     * @return
+     */
+
+    @Override
+    public List<DishVO> getByCategoryId(Long categoryId) {
+        List<DishVO> list = dishMapper.getByCategoryId(categoryId);
+        return list;
+    }
+
+    /**
+     * @param status
+     * @param id
+     * @return
+     */
+    @Override
+    public void startOrStop(Integer status, Long id) {
+        Dish dish = Dish.builder()
+                .id(id)
+                .status(status)
+                .build();
+        dishMapper.update(dish);
     }
 }
