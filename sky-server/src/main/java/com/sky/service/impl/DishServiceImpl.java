@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -199,5 +200,30 @@ public class DishServiceImpl implements DishService {
                 .status(status)
                 .build();
         dishMapper.update(dish);
+    }
+
+    /**
+     * 条件查询菜品和口味
+     * @param dish
+     * @return
+     */
+    public List<DishVO> listWithFlavor(Dish dish) {
+        List<DishVO> dishList = dishMapper.getByCategoryId(dish.getCategoryId());
+
+        List<DishVO> dishVOList = new ArrayList<>();
+
+        for (DishVO d : dishList) {
+            if( Objects.equals(d.getStatus(), StatusConstant.DISABLE) ){
+                continue;
+            }
+
+            //根据菜品id查询对应的口味
+            List<DishFlavor> flavors = dishFlavorMapper.getByDishId(d.getId());
+
+            d.setFlavors(flavors);
+            dishVOList.add(d);
+        }
+
+        return dishVOList;
     }
 }
