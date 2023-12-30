@@ -129,6 +129,13 @@
                 <artifactId>httpclient</artifactId>
                 <version>4.5.13</version>
             </dependency>
+
+            <!--基于注解的缓存功能-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-cache</artifactId>
+                <version>2.7.3</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>
