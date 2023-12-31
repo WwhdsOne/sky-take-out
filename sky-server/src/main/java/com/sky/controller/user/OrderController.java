@@ -1,7 +1,11 @@
 package com.sky.controller.user;
 
+import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
+import com.sky.entity.OrderDetail;
+import com.sky.entity.Orders;
+import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.OrderService;
 import com.sky.vo.OrderOverViewVO;
@@ -56,5 +60,71 @@ public class OrderController {
         return Result.success(orderPaymentVO);
     }
 
+    /**
+     * 历史订单查询
+     * @param page
+     * @param pageSize
+     * @param status
+     * @return
+     */
+    @GetMapping("/historyOrders")
+    @ApiOperation("历史订单查询")
+    public Result<PageResult> payment(Integer page,Integer pageSize,Integer status){
+        log.info("历史订单查询:{},{},{}",page,pageSize,status);
+        PageResult pageResult = orderService.pageQuery(page,pageSize,status);
+        return Result.success(pageResult);
+    }
+
+    /**
+     * 订单详情查询
+     * @return
+     */
+    @GetMapping("/orderDetail/{id}")
+    @ApiOperation("订单详情查询")
+    public Result<OrderVO> payment(@PathVariable Long id){
+        log.info("订单详情查询:{}",id);
+        OrderVO orderVO = orderService.details(id);
+        return Result.success(orderVO);
+    }
+
+
+    /**
+     * 取消订单
+     * @param id
+     * @return
+     */
+    @PutMapping("/cancel/{id}")
+    @ApiOperation("取消订单")
+    public Result cancel(@PathVariable Long id){
+        log.info("取消订单:{}",id);
+        orderService.cancelByUser(id);
+        return Result.success();
+    }
+
+    /**
+     * 再来一单
+     * @param id
+     * @return
+     */
+    @PostMapping("/repetition/{id}")
+    @ApiOperation("再来一单")
+    public Result repetition(@PathVariable Long id){
+        log.info("再来一单:{}",id);
+        orderService.repetition(id);
+        return Result.success();
+    }
+
+    /**
+     * 催单
+     * @param id
+     * @return
+     */
+    @PostMapping("/reminder/{id}")
+    @ApiOperation("催单")
+    public Result reminder(@PathVariable Long id){
+        log.info("催单:{}",id);
+        orderService.reminder(id);
+        return Result.success();
+    }
 
 }
