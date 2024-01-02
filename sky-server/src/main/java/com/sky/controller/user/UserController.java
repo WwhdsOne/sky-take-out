@@ -42,7 +42,7 @@ public class UserController {
     public Result<UserLoginVO> login(@RequestBody UserLoginDTO userLoginDTO){
         log.info("微信用户登录:{}",userLoginDTO.getCode());
         //微信登录
-        User user= userService.wxLogin(userLoginDTO);
+        User  user = userService.wxLogin(userLoginDTO);
 
         //为微信用户生成jwt令牌
         Map<String,Object> claims = new HashMap<>();

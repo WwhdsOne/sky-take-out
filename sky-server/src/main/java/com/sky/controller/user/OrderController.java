@@ -5,6 +5,7 @@ import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.OrderDetail;
 import com.sky.entity.Orders;
+import com.sky.mapper.OrderMapper;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.OrderService;
@@ -12,11 +13,15 @@ import com.sky.vo.OrderOverViewVO;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
+import com.sky.websocket.WebSocketServer;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController("userOrderController")
 @RequestMapping("/user/order")
@@ -26,6 +31,8 @@ public class OrderController {
 
     @Autowired
     OrderService orderService;
+
+
 
     /**
      * 用户下单
@@ -119,10 +126,10 @@ public class OrderController {
      * @param id
      * @return
      */
-    @PostMapping("/reminder/{id}")
-    @ApiOperation("催单")
+    @GetMapping("/reminder/{id}")
+    @ApiOperation("客户催单")
     public Result reminder(@PathVariable Long id){
-        log.info("催单:{}",id);
+        log.info("客户催单:{}",id);
         orderService.reminder(id);
         return Result.success();
     }

@@ -15,6 +15,7 @@ import com.sky.result.PageResult;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.*;
+import com.sky.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,6 +41,8 @@ public class OrderServiceImpl implements OrderService {
     private UserMapper userMapper;
     @Autowired
     private AddressBookMapper addressBookMapper;
+    @Autowired
+    WebSocketServer webSocketServer;
 
     /**
      * 获取订单餐品构成的字符串
@@ -173,6 +174,16 @@ public class OrderServiceImpl implements OrderService {
                 .checkoutTime(LocalDateTime.now())
                 .build();
 
+        //提醒商家
+        Map map = new HashMap<>();
+        map.put("type",1);//1表示来单提醒,2表示客户催单
+        map.put("orderId",ordersDB.getId());
+        map.put("content","订单号:" + outTradeNo);
+
+        //通过websocket向商家发送提示消息
+        String json = JSONObject.toJSONString(map);
+        webSocketServer.sendToAllClient(json);
+
         orderMapper.update(orders);
     }
 
@@ -280,7 +291,18 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public void reminder(Long id) {
+        Orders ordersDB = orderMapper.getById(id);
+        //提醒商家
+        if(ordersDB == null){
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        Map map = new HashMap<>();
+        map.put("type",2);//1表示来单提醒,2表示客户催单
+        map.put("orderId",id);
+        map.put("content","订单号:" + ordersDB.getNumber());
+        String json = JSONObject.toJSONString(map);
 
+        webSocketServer.sendToAllClient(json);
     }
 
     /**
