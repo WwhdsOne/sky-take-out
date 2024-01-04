@@ -19,7 +19,7 @@ import java.util.UUID;
  * 通用Controller
  */
 @RestController
-@RequestMapping("/admin/common")
+@RequestMapping("/user/common")
 @Slf4j
 @Api
 public class CommonController {
