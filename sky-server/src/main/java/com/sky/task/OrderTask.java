@@ -38,7 +38,7 @@ public class OrderTask {
     /**
      * 定时处理处于派送中订单
      */
-    @Scheduled(cron = "0 * 1 * * ?")//每天凌晨一点执行
+    @Scheduled(cron = "0/30 * * * * ?")//每天凌晨一点执行(测试时每分钟一次)
     public void processDeliveryOrder(){
         log.info("定时处理处于派送中订单:{}", LocalDateTime.now());
         LocalDateTime time = LocalDateTime.now().minusHours(1);

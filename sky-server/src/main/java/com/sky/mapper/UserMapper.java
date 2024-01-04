@@ -5,6 +5,8 @@ import com.sky.vo.UserLoginVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.Map;
+
 @Mapper
 public interface UserMapper {
 
@@ -26,4 +28,11 @@ public interface UserMapper {
 
     @Select("select * from user where id = #{id}")
     User getById(Long id);
+
+    /**
+     * 根据动态数据统计用户数量
+     * @param map
+     * @return
+     */
+    Integer countByMap(Map map);
 }
