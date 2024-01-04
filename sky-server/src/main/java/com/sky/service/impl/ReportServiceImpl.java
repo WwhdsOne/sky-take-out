@@ -6,16 +6,22 @@ import com.sky.mapper.OrderDetailMapper;
 import com.sky.mapper.OrderMapper;
 import com.sky.mapper.UserMapper;
 import com.sky.service.ReportService;
-import com.sky.vo.OrderReportVO;
-import com.sky.vo.SalesTop10ReportVO;
-import com.sky.vo.TurnoverReportVO;
-import com.sky.vo.UserReportVO;
+import com.sky.service.WorkspaceService;
+import com.sky.vo.*;
 import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -27,13 +33,16 @@ import java.util.stream.Collectors;
 public class ReportServiceImpl implements ReportService {
 
     @Autowired
-    OrderMapper orderMapper;
+    private OrderMapper orderMapper;
 
     @Autowired
-    UserMapper userMapper;
+    private UserMapper userMapper;
 
     @Autowired
-    OrderDetailMapper orderDetailMapper;
+    private OrderDetailMapper orderDetailMapper;
+
+    @Autowired
+    private WorkspaceService workspaceService;
 
     private List<LocalDate> getDateListByBeginAndEnd(LocalDate begin,LocalDate end){
         List<LocalDate> dateList = new ArrayList<>();
@@ -195,5 +204,69 @@ public class ReportServiceImpl implements ReportService {
                 .nameList(StringUtils.join(nameList,","))
                 .numberList(StringUtils.join(numberList,","))
                 .build();
+    }
+
+    /**
+     * 导出Excel报表接口
+     * @param httpServletResponse
+     */
+    @Override
+    public void exportBusinessData(HttpServletResponse httpServletResponse) {
+        //获取近30天营业数据
+        LocalDate dateBegin = LocalDate.now().minusDays(30);
+        //今天还没结束所以到昨天截止
+        LocalDate dateEnd = LocalDate.now().minusDays(1);
+        BusinessDataVO businessData = workspaceService.getBusinessData(LocalDateTime.of(dateBegin, LocalTime.MIN), LocalDateTime.of(dateEnd, LocalTime.MAX));
+        //通过POI写入excel文件中
+
+        //通过反射获取resources资源路径
+        InputStream input = this.getClass().getClassLoader().getResourceAsStream("template/运营数据报表模板.xlsx");
+        try {
+            XSSFWorkbook excel = new XSSFWorkbook(input);
+
+            XSSFSheet sheet = excel.getSheet("Sheet1");
+
+
+
+            //第二行 时间信息s
+            sheet.getRow(1).getCell(1).setCellValue("时间" + dateBegin + "至" + dateEnd);
+            //第四行 营业额,订单完成率,新增用户数
+            sheet.getRow(3).getCell(2).setCellValue(businessData.getTurnover());
+            sheet.getRow(3).getCell(4).setCellValue(businessData.getOrderCompletionRate());
+            sheet.getRow(3).getCell(6).setCellValue(businessData.getNewUsers());
+
+            //第五行 有效订单,平均客单价
+            sheet.getRow(4).getCell(2).setCellValue(businessData.getValidOrderCount());
+            sheet.getRow(4).getCell(4).setCellValue(businessData.getUnitPrice());
+
+            //第八行 明细数据
+
+            for ( int i = 0; i < 30; i++ ) {
+                //获取当天数据
+                LocalDate date = dateBegin.plusDays(1);
+                BusinessDataVO dayBusinessData = workspaceService.getBusinessData(LocalDateTime.of(date, LocalTime.MIN), LocalDateTime.of(date, LocalTime.MAX));
+                sheet.getRow(7+i).getCell(1).setCellValue(String.valueOf(date));
+                sheet.getRow(7+i).getCell(2).setCellValue(dayBusinessData.getTurnover());
+                sheet.getRow(7+i).getCell(3).setCellValue(dayBusinessData.getValidOrderCount());
+                sheet.getRow(7+i).getCell(4).setCellValue(dayBusinessData.getOrderCompletionRate());
+                sheet.getRow(7+i).getCell(5).setCellValue(dayBusinessData.getUnitPrice());
+                sheet.getRow(7+i).getCell(6).setCellValue(dayBusinessData.getNewUsers());
+
+
+            }
+
+
+            //通过输入流将excel文件下载到客户端
+            ServletOutputStream servletOutputStream = httpServletResponse.getOutputStream();
+            excel.write(servletOutputStream);
+            servletOutputStream.close();
+            excel.close();
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //填充数据
+
     }
 }
